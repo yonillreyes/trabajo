@@ -1,0 +1,109 @@
+practica 2: Configuración de parametros de red.(nmcli,nmtui)
+ 
+nmtui:
+ 
+
+# Abre la interfaz de configuración de red en nmtui
+# Configuración manual de la red: IP, DNS, Gateway, y luego salir
+nmtui <<EOF
+edit
+ens160
+manual
+192.168.100.100/24
+192.168.100.1
+8.8.8.8
+OK
+back
+quit
+EOF
+
+# Apagar la red (desactivar la conexión)
+nmcli connection down ens160
+
+# Prender la red (activar la conexión)
+nmcli connection up ens160
+
+
+
+NMCLI: 
+
+nmcli connection edit ens160
+set ipv4.method manual
+set ipv4.addresses 192.168.100.100/24
+set ipv4.gateway 192.168.100.1
+set ipv4.dns "8.8.8.8"
+save
+quit
+nmcli con up ens160
+nmcli device show ens160
+
+
+
+
+------------------------------------------------------------------------------------------------------------------
+
+Practica 3: Gestion de Usuario y grupos
+
+# 1. Crear el usuario "juan"
+sudo useradd juan
+
+# 2. Establecer la contraseña para el usuario "juan"
+sudo passwd juan
+
+# 3. Agregar el usuario "juan" al grupo "wheel" (para tener permisos de administrador)
+sudo usermod -aG wheel juan
+
+# 4. Crear el usuario "usuario_guest"
+sudo useradd usuario_guest
+
+# 5. Establecer la contraseña para el usuario "usuario_guest"
+sudo passwd usuario_guest
+
+# 6. Crear el grupo "gueest"
+sudo groupadd gueest
+
+# 7. Agregar el usuario "usuario_guest" al grupo "gueest"
+sudo usermod -aG gueest usuario_guest
+
+# 8. Verificar los grupos a los que pertenece el usuario "juan"
+groups juan
+
+# 9. Verificar los grupos a los que pertenece el usuario "usuario_guest"
+groups usuario_guest
+
+# 10. Verificar que el grupo "gueest" ha sido creado
+grep gueest /etc/group
+
+# 11. Eliminar el usuario "juan"
+sudo userdel juan
+
+# 12. Eliminar el usuario "usuario_guest"
+sudo userdel usuario_guest
+
+# 13. Eliminar el grupo "gueest"
+sudo groupdel gueest
+
+# 14. Verificar que el usuario "juan" ha sido eliminado
+getent passwd juan
+
+# 15. Verificar que el usuario "usuario_guest" ha sido eliminado
+getent passwd usuario_guest
+
+# 16. Verificar que el grupo "gueest" ha sido eliminado
+grep gueest /etc/group
+
+
+
+------------------------------------------------------------------------------------------------------------------
+
+
+Practica 4: Gestion de Permisos de archivos
+
+mkdir materia
+touch materia/estudiante.txt
+vi materia/estudiante.txt
+chmod 700 materia/estudiante.txt
+chmod 070 materia/estudiante.txt
+mkdir materia2
+cp materia/estudiante.txt materia2/
+rm -rf materia
