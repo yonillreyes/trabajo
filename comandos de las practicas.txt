@@ -176,9 +176,9 @@ Parte 3: Eliminar el usuario y el grupo previamente creados
 A. Eliminar el usuario "usuario_guest"
 Existen dos comandos comunes para eliminar un usuario: userdely deluser. Aquí usamos deluser(disponible en muchas distribuciones basadas en Debian).
 Comando básico (sin borrar el directorio home):
-sudo deluser usuario_guest
+sudo userdel usuario_guest
 Para eliminar el usuario y su directorio personal (home):
-sudo deluser --remove-home usuario_guest
+sudo rm -rf usuario
 Explicación:
 
 · deluser: Es el comando utilizado para eliminar un usuario.
