@@ -1,109 +1,293 @@
-practica 2: Configuración de parametros de red.(nmcli,nmtui)
+Modulo 1
  
-nmtui:
- 
+Práctica 2: Configuración de parámetros de red en Oracle Linux 9.5
+Objetivo:
 
-# Abre la interfaz de configuración de red en nmtui
-# Configuración manual de la red: IP, DNS, Gateway, y luego salir
-nmtui <<EOF
-edit
-ens160
-manual
-192.168.100.100/24
-192.168.100.1
-8.8.8.8
-OK
-back
-quit
-EOF
+Configurar los parámetros de red utilizando tanto DHCP como IP estática desde la terminal, explicando todas las formas que permite el sistema operativo, incluyendo herramientas como nmtui, nmcli, y la GUI (interfaz gráfica).
 
-# Apagar la red (desactivar la conexión)
-nmcli connection down ens160
+1. Configuración con nmtui (Network Manager Text User Interface)
+nmtui es una herramienta basada en texto para configurar la red de forma interactiva. No todas las distribuciones la incluyen por defecto, pero puede instalarse fácilmente.
 
-# Prender la red (activar la conexión)
-nmcli connection up ens160
+Pasos:
+Abrir una terminal.
+Escribir nmtui y presionar Enter.
+En el menú que aparece, seleccionar “Edit a connection”.
+Elegir la interfaz de red que estés utilizando (por ejemplo, ens160, enp0s3, etc.).
+Ir a la opción IPv4 Configuration.
 
+Elegir entre:
 
+Automatic (DHCP): para obtener la IP automáticamente.
+Manual: para configurar una IP estática.
+Si eliges Manual, selecciona Show para desplegar los campos a completar.
 
-NMCLI: 
+Completa los siguientes campos:
+Address: la IP deseada (ej. 192.168.1.100/24)
+Gateway: la puerta de enlace (ej. 192.168.1.1)
+DNS servers: 8.8.8.8, 8.8.4.4
+Una vez configurado todo, desplazarse hasta OK y luego salir del menú principal.
+
+Reiniciar la red para aplicar los cambios con alguno de los siguientes comandos:
+
+sudo systemctl restart NetworkManager
+
+o bien:
+
+sudo systemctl stop NetworkManager
+sudo systemctl start NetworkManager
+
+2. Configuración con nmcli (Network Manager Command Line Interface)
+nmcli es una herramienta poderosa para administrar conexiones de red desde la línea de comandos.
+
+Pasos básicos:
+Ver interfaces de red activas:
+
+nmcli device status
+
+Ver detalles de una interfaz específica:
+
+nmcli -p device show ens160
+Editar la conexión:
 
 nmcli connection edit ens160
-set ipv4.method manual
-set ipv4.addresses 192.168.100.100/24
-set ipv4.gateway 192.168.100.1
-set ipv4.dns "8.8.8.8"
-save
-quit
-nmcli con up ens160
-nmcli device show ens160
+Dentro del modo interactivo, puedes usar ? para listar comandos disponibles.
 
+Comandos útiles:
 
+print – muestra la configuración actual
+set – cambia un valor (por ejemplo: set ipv4.addresses 192.168.1.100/24)
+set ipv4.gateway 192.168.1.1
+set ipv4.dns "8.8.8.8 8.8.4.4"
+set ipv4.method manual (o auto para DHCP)
+save – guarda los cambios
+quit – salir
 
+Reiniciar el servicio de red:
 
-------------------------------------------------------------------------------------------------------------------
+sudo systemctl restart NetworkManager
 
+3. Configuración por GUI (Interfaz gráfica)
+Si estás utilizando una versión de Oracle Linux con entorno gráfico (como GNOME), también puedes configurar la red de forma visual.
+
+Pasos:
+Haz clic en el icono de red (superior derecho).
+Selecciona Configuración de red o Wired settings.
+Elige tu interfaz activa.
+En la pestaña IPv4, selecciona el método:
+Automático (DHCP)
+Manual: aquí puedes añadir IP, Gateway y DNS.
+Aplicar cambios y reiniciar la red si es necesario.
+
+4. Configuración de los DNS de Google
+Puedes configurar los DNS de Google (8.8.8.8 y 8.8.4.4) por cualquiera de los métodos anteriores:
+
+Con nmtui:
+En el campo DNS servers, agrega: 8.8.8.8, 8.8.4.4
+
+Con nmcli:
+
+nmcli connection modify ens160 ipv4.dns "8.8.8.8 8.8.4.4"
+nmcli connection up ens160
+
+Con GUI:
+En la configuración de red, sección IPv4, colocar los DNS en el campo correspondiente. 
+ 
+ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
 Practica 3: Gestion de Usuario y grupos
+· Cree un usuario con su nombre y agreguelo al grupo "sudoers" para que tenga permisos de administracion 
+· Cree un grupo llamado guest, cree un usuario y agrequelo al grupo creado anteriormente
+· Elimine el usuario y el crupo previamente creado
+ 
+Parte 1: Crear un usuario y agregarlo al grupo "sudoers"
+A. Crear un usuario con tu nombre
 
-# 1. Crear el usuario "juan"
-sudo useradd juan
+Comando:
+sudo useradd -m -s /bin/bash TU_NOMBRE
+Explicación de cada parte:
+· sudo: Ejecuta el comando con privilegios de administrador (root).
+· useradd: Es el comando que se utiliza para crear un nuevo usuario en el sistema.
+· -m: Indica que se debe crear el directorio personal (home) para el usuario en /home/TU_NOMBRE.
+· -s /bin/bash: Especifica el shell que usará el usuario. En este caso, /bin/bash(la Bash shell).
+· TU_NOMBRE: Es el nombre del usuario que estás creando. Reemplaza TU_NOMBRE por tu nombre o el identificador deseado.
 
-# 2. Establecer la contraseña para el usuario "juan"
+Ejemplo real:
+Si tu nombre es “juan”, el comando sería:
+sudo useradd -m -s /bin/bash juan
+ 
+ 
+ 
+ 
+B. Establecer una contraseña para el usuario
+Comando:
 sudo passwd juan
+Explicación:
+· passwd: Permite asignar o cambiar la contraseña de un usuario.
+· juan: Especifica para qué usuario se va a cambiar o establecer la contraseña.
+· Al ejecutar este comando, se te pedirá que escribas la contraseña dos veces para confirmarla.
+C. Agregar el usuario al grupo "sudo" (o "sudoers")
 
-# 3. Agregar el usuario "juan" al grupo "wheel" (para tener permisos de administrador)
-sudo usermod -aG wheel juan
+Comando:
 
-# 4. Crear el usuario "usuario_guest"
-sudo useradd usuario_guest
+sudo usermod -aG sudo juan
+Explicación de cada parte:
+· usermod:Es el comando utilizado para modificar la cuenta de un usuario existente.
+· -aG:
+o -G: Indica que se agregará el usuario a uno o varios grupos.
+o -a: (append) Es esencial para agregar el usuario a los grupos existentes sin eliminarlo de otros grupos a los que ya pertenece.
+· sudo: Es el grupo al que se agregará el usuario. Este grupo permite que el usuario ejecute comandos con privilegios de administrador.
+· juan: Es el nombre del usuario que queremos modificar.
 
-# 5. Establecer la contraseña para el usuario "usuario_guest"
+Nota: En algunas distribuciones, el grupo para administradores puede llamarse wheelen lugar de sudo. Verifica cuál es el grupo adecuado para tu distribución.
+ 
+
+ 
+ 
+Parte 2: Crear un grupo llamado "guest", crear un usuario y agregarlo al grupo "guest"
+A. Crear el grupo "guest"
+Comando:
+sudo groupadd guest
+Explicación:
+· groupadd: Es el comando que se usa para crear un nuevo grupo en el sistema.
+· invitado: Es el nombre del grupo que se está creando.
+
+B. Crear un usuario para el grupo "guest"
+Comando:
+sudo useradd -m -s /bin/bash usuario_guest
+Explicación:
+· Igual que antes, se utiliza useraddpara crear un usuario.
+· usuario_guest: Es el nombre del usuario. Puedes elegir cualquier nombre; Aquí usamos “usuario_guest” como ejemplo.
+· -m: crea el directorio personal.
+· -s /bin/bash: asigna el shell Bash.
+
+C. Establecer la contraseña para el usuario "usuario_guest"
+Comando:
 sudo passwd usuario_guest
+Explicación:
+Se asigna la contraseña al usuario "usuario_guest" de forma interactiva.
+D. Agregar el usuario "usuario_guest" al grupo "guest"
+Comando: sudo usermod -aG guest usuario_guest
 
-# 6. Crear el grupo "gueest"
-sudo groupadd gueest
+Explicación:
+Se utiliza el comando usermodcon el parámetro -aG para agregar el usuario "usuario_guest" al grupo "guest" sin quitarlo de otros grupos a los que pueda pertenecer.
+ 
 
-# 7. Agregar el usuario "usuario_guest" al grupo "gueest"
-sudo usermod -aG gueest usuario_guest
+Parte 3: Eliminar el usuario y el grupo previamente creados
+A. Eliminar el usuario "usuario_guest"
+Existen dos comandos comunes para eliminar un usuario: userdely deluser. Aquí usamos deluser(disponible en muchas distribuciones basadas en Debian).
+Comando básico (sin borrar el directorio home):
+sudo deluser usuario_guest
+Para eliminar el usuario y su directorio personal (home):
+sudo deluser --remove-home usuario_guest
+Explicación:
 
-# 8. Verificar los grupos a los que pertenece el usuario "juan"
-groups juan
+· deluser: Es el comando utilizado para eliminar un usuario.
+· --remove-home: Esta opción elimina el directorio personal del usuario y su contenido.
+· usuario_guest: Es el nombre del usuario que se va a eliminar.
 
-# 9. Verificar los grupos a los que pertenece el usuario "usuario_guest"
-groups usuario_guest
-
-# 10. Verificar que el grupo "gueest" ha sido creado
-grep gueest /etc/group
-
-# 11. Eliminar el usuario "juan"
-sudo userdel juan
-
-# 12. Eliminar el usuario "usuario_guest"
-sudo userdel usuario_guest
-
-# 13. Eliminar el grupo "gueest"
-sudo groupdel gueest
-
-# 14. Verificar que el usuario "juan" ha sido eliminado
-getent passwd juan
-
-# 15. Verificar que el usuario "usuario_guest" ha sido eliminado
-getent passwd usuario_guest
-
-# 16. Verificar que el grupo "gueest" ha sido eliminado
-grep gueest /etc/group
-
-
-
-------------------------------------------------------------------------------------------------------------------
-
-
+B. Eliminar el grupo "guest"
+Comando:
+sudo groupdel guest
+Explicación:
+· groupdel: Se utiliza para eliminar un grupo del sistema.
+· guest: Es el nombre del grupo que se elimina.
+ 
+ ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+ 
 Practica 4: Gestion de Permisos de archivos
-
+	· Cree una carpeta llamada materia, dentro cree un archivo llamado estudiante.txt y editelo utilizando "vi" , agregue su nombre y Matricula
+	· Modifique los permisos para que solo el usuario propietario del archivo pueda tener control total
+	· Modifique los permisos para que solo el el grupo propietario del archivo pueda tener control total 
+	· Cree una nueva carpeta llamada materia2 y cree una copia del archivo estudiante.txt dentro de ella
+	· Elimine la carpeta materia junto con el archivo estudiante.txt
+ 
+Parte 1: Crear carpeta, archivo y editar con vi
+1.1. Crear una carpeta llamada "materia"
+Comando:
 mkdir materia
+Explicación:
+· mkdir: Significa “crear directorio” y se utiliza para crear directorios.
+· materia: Es el nombre del directorio que se creará.
+ 
+
+1.2. Cree un archivo llamado "estudiante.txt" dentro de la carpeta "materia"
+Comando:
 touch materia/estudiante.txt
+Explicación:
+· touch: Se utiliza para crear un archivo vacío o actualizar la fecha de modificación si ya existe.
+· materia/estudiante.txt: Ruta y nombre del archivo. Se crea dentro de la carpeta "materia".
+ 
+
+ 
+1.3. Editar el archivo con "vi" y agregar tu nombre y matrícula
+Comando:
 vi materia/estudiante.txt
+Pasos dentro de vi:
+1. Abrir vi: Al ejecutar el comando, se abrirá el editor "vi" con el archivo.
+2. Entrar en modo inserción: Presiona la tecla ipara poder editar.
+3. Escribir el contenido: Agrega tu nombre y matrícula, por ejemplo:
+Nombre: Juan Pérez
+Matrícula: 202312345
+4. Salir del modo inserción: Presiona Esc.
+5. Guardar y salir: Escribe :wq(write & quit) y presiona Enter.
+Explicación general de vi:
+· i: Inicia el modo de inserción para editar.
+· Esc: Sale del modo de inserción y vuelve al modo de comando.
+· :wq: Guarda los cambios y cierra el editor.
+ 
+
+Parte 2: Modificar permisos del archivo
+2.1. Permitir que solo el usuario propietario tenga control total del archivo
+Comando:
 chmod 700 materia/estudiante.txt
+Explicación:
+· chmod: Cambia los permisos de archivos o directorios.
+· 700: o El primer dígito (7) asigna permisos completos (lectura, escritura y ejecución) al propietario .
+       o El segundo dígito (0) indica que el grupo no tiene ningún permiso.
+       o El tercer dígito (0) indica que otros no tienen ningún permiso.
+
+· materia/estudiante.txt: Es el archivo sobre el cual se aplican estos permisos.
+Nota: Aunque para un archivo de texto no se requiere el permiso de ejecución, en este ejemplo usamos “control total” (lectura, escritura y ejecución) para ilustrar el concepto.
+ 
+
+ 
+2.2. Modificar los permisos para que solo el grupo propietario tenga control total
+Comando:
 chmod 070 materia/estudiante.txt
+Explicación:
+· 070:
+			o El primer dígito (0) quita todos los permisos al usuario propietario .
+			o El segundo dígito (7) otorga permisos completos (lectura, escritura y ejecución) al grupo .
+			o El tercer dígito (0) indica que otros no tienen ningún permiso.
+
+Importante: Estos comandos se ejecutan de forma independiente. Es decir, al ejecutar el segundo comando, se modifica el archivo para que el grupo tenga control total, y el usuario propietario pierda sus permisos. En una práctica real, se elegirá uno de los dos escenarios, según se requiera.
+ 
+
+Parte 3: Copiar el archivo a otra carpeta y eliminar el original
+3.1. Crear una nueva carpeta llamada "materia2"
+Comando:
 mkdir materia2
+Explicación:
+	
+· Igual que en la Parte 1, usamos mkdirpara crear la carpeta "materia2".
+ 
+
+3.2. Copiar el archivo "estudiante.txt" a "materia2"
+Comando:
 cp materia/estudiante.txt materia2/
-rm -rf materia
+Explicación:
+· cp: Es el comando para copiar archivos.
+· materia/estudiante.txt: Es la ruta y nombre del archivo de origen.
+· materia2/: Es la ruta del directorio de destino. El archivo se copiará dentro de "materia2".
+ 
+
+ 
+ 
+3.3. Eliminar la carpeta "materia" junto con el archivo "estudiante.txt"
+Comando:
+rm -r materia
+Explicación:
+· rm: Se utiliza para eliminar archivos o directorios.
+· -r: Significa “recursivo” y se usa para eliminar un directorio y todos sus contenidos (archivos y subdirectorios).
+· materia: Es el directorio que se eliminará junto con el archivo que contiene.
